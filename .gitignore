@@ -60,8 +60,7 @@ build/
 # Go build cache
 go-build/
 
-# Submodules (if not needed)
-submodules/
+
 
 # Test files
 *_test.go

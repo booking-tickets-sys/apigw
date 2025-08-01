@@ -32,14 +32,16 @@ clean:
 	rm -f coverage.out
 	rm -f api/proto/*.pb.go
 
-# Generate protobuf files from local proto directory
+# Generate protobuf files from submodules
 # Output: api/proto/user-svc.pb.go, api/proto/user-svc_grpc.pb.go
 proto:
 	@echo "Generating protobuf files..."
 	@mkdir -p api/proto
-	protoc --proto_path=proto \
+	protoc --proto_path=submodules \
 		--go_out=api/proto --go_opt=module=apigw/api/proto \
 		--go-grpc_out=api/proto --go-grpc_opt=module=apigw/api/proto \
+		--go_opt=Muser-svc.proto=apigw/api/proto \
+		--go-grpc_opt=Muser-svc.proto=apigw/api/proto \
 		user-svc.proto
 	@echo "Protobuf files generated successfully in api/proto/"
 
