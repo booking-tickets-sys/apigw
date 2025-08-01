@@ -30,25 +30,25 @@ test-coverage:
 clean:
 	rm -rf bin/
 	rm -f coverage.out
-	rm -f api/proto/*.pb.go
+	rm -f pb/*.pb.go
 
 # Generate protobuf files from submodules
-# Output: api/proto/user-svc.pb.go, api/proto/user-svc_grpc.pb.go
+# Output: pb/user-svc.pb.go, pb/user-svc_grpc.pb.go
 proto:
 	@echo "Generating protobuf files..."
-	@mkdir -p api/proto
+	@mkdir -p pb
 	protoc --proto_path=submodules \
-		--go_out=api/proto --go_opt=module=apigw/api/proto \
-		--go-grpc_out=api/proto --go-grpc_opt=module=apigw/api/proto \
-		--go_opt=Muser-svc.proto=apigw/api/proto \
-		--go-grpc_opt=Muser-svc.proto=apigw/api/proto \
+		--go_out=pb --go_opt=module=apigw/pb \
+		--go-grpc_out=pb --go-grpc_opt=module=apigw/pb \
+		--go_opt=Muser-svc.proto=apigw/pb \
+		--go-grpc_opt=Muser-svc.proto=apigw/pb \
 		user-svc.proto
-	@echo "Protobuf files generated successfully in api/proto/"
+	@echo "Protobuf files generated successfully in pb/"
 
 # Clean generated protobuf files
 proto-clean:
 	@echo "Cleaning generated protobuf files..."
-	rm -f api/proto/*.pb.go
+	rm -f pb/*.pb.go
 	@echo "Protobuf files cleaned"
 
 # Regenerate protobuf files (clean + generate)

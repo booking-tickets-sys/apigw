@@ -11,7 +11,7 @@ WORKDIR /app
 COPY apigw/go.mod apigw/go.sum ./
 
 # Copy proto directory for module replacement
-COPY user-svc/api/proto/ ./user-svc/api/proto/
+COPY pb/ ./pb/
 
 # Download dependencies
 RUN go mod download

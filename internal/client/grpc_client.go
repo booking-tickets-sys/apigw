@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	pb "apigw/api/proto"
+	pb "apigw/pb"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

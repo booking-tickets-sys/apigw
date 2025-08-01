@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	pb "apigw/api/proto"
+	pb "apigw/pb"
 
 	"github.com/gin-gonic/gin"
 

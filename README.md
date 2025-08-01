@@ -13,6 +13,7 @@ A lightweight API gateway built with Go and Gin that provides HTTP endpoints for
 - **Middleware Support**: Reusable middleware components
 - **Docker Support**: Containerized deployment
 - **Shared Proto Definitions**: Uses git submodules for shared protocol buffer definitions
+- **Automated Build System**: Comprehensive Makefile for development workflow
 
 ## 📋 API Endpoints
 
@@ -30,10 +31,9 @@ A lightweight API gateway built with Go and Gin that provides HTTP endpoints for
 
 ```
 apigw/
-├── api/                    # API definitions and contracts
-│   └── proto/             # Protocol Buffer generated files
-│       ├── user-svc.pb.go
-│       └── user-svc_grpc.pb.go
+├── pb/                    # Generated Protocol Buffer files
+│   ├── user-svc.pb.go    # Generated protobuf messages
+│   └── user-svc_grpc.pb.go # Generated gRPC service definitions
 ├── cmd/                   # Application entry points
 │   └── apigw/            # Main application binary
 │       └── main.go       # Application entry point
@@ -52,6 +52,7 @@ apigw/
 │       └── router.go
 ├── submodules/          # Git submodules for shared protos
 │   └── user-svc.proto   # Shared protocol buffer definitions
+├── bin/                 # Build output directory
 ├── go.mod              # Go module definition
 ├── go.sum              # Go module checksums
 ├── Makefile            # Build automation
@@ -95,6 +96,14 @@ make run
 ```
 
 The API gateway will start on `http://localhost:8080`
+
+### Alternative: Quick Development Setup
+
+For a complete development environment in one command:
+
+```bash
+make setup-dev && make build && make run
+```
 
 ## ⚙️ Configuration
 
@@ -167,6 +176,21 @@ curl -X POST http://localhost:8080/api/v1/users/login \
   }'
 ```
 
+**Response:**
+```json
+{
+  "user": {
+    "id": "user-id",
+    "email": "user@example.com",
+    "username": "testuser",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  },
+  "accessToken": "jwt-access-token",
+  "refreshToken": "jwt-refresh-token"
+}
+```
+
 ### Refresh Token
 
 ```bash
@@ -177,27 +201,36 @@ curl -X POST http://localhost:8080/api/v1/users/refresh \
   }'
 ```
 
+**Response:**
+```json
+{
+  "accessToken": "new-jwt-access-token"
+}
+```
+
 ## 🛠️ Development
 
 ### Available Make Commands
 
-- `make build` - Build the application
-- `make run` - Run the application
-- `make dev` - Run in development mode
-- `make test` - Run tests
-- `make test-coverage` - Run tests with coverage
-- `make clean` - Clean build artifacts
-- `make deps` - Install dependencies
-- `make fmt` - Format code
-- `make lint` - Lint code
-- `make proto` - Generate protobuf files
-- `make proto-clean` - Clean generated protobuf files
-- `make proto-regenerate` - Clean and regenerate protobuf files
-- `make build-prod` - Build for production
-- `make docker-build` - Build Docker image
-- `make docker-run` - Run Docker container
-- `make install-tools` - Install development tools
-- `make setup-dev` - Complete development setup
+| Command | Description |
+|---------|-------------|
+| `make build` | Build the application |
+| `make run` | Run the application |
+| `make dev` | Run in development mode |
+| `make test` | Run tests |
+| `make test-coverage` | Run tests with coverage |
+| `make clean` | Clean build artifacts |
+| `make deps` | Install dependencies |
+| `make fmt` | Format code |
+| `make lint` | Lint code |
+| `make proto` | Generate protobuf files |
+| `make proto-clean` | Clean generated protobuf files |
+| `make proto-regenerate` | Clean and regenerate protobuf files |
+| `make build-prod` | Build for production |
+| `make docker-build` | Build Docker image |
+| `make docker-run` | Run Docker container |
+| `make install-tools` | Install development tools |
+| `make setup-dev` | Complete development setup |
 
 ### Running Tests
 
@@ -220,6 +253,8 @@ make lint
 ```
 
 ### Protocol Buffer Generation
+
+The project uses Protocol Buffers for gRPC communication. The protobuf files are generated from the `submodules/` directory to the `pb/` directory.
 
 ```bash
 # Install protobuf tools
@@ -256,6 +291,29 @@ make docker-build
 
 ```bash
 make docker-run
+```
+
+### Docker Compose (Optional)
+
+If you have multiple services, you can create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+services:
+  apigw:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - APIGW_SERVICES_USER_SERVICE_HOST=user-service
+      - APIGW_SERVICES_USER_SERVICE_PORT=9090
+    depends_on:
+      - user-service
+  
+  user-service:
+    image: your-user-service:latest
+    ports:
+      - "9090:9090"
 ```
 
 ## 🔧 Error Handling
@@ -309,25 +367,61 @@ The health check endpoint returns:
 
 This API Gateway follows a clean architecture pattern:
 
-1. **Entry Point** (`cmd/apigw/`): Application bootstrap
-2. **Configuration** (`config/`): Environment and service configuration
-3. **Handlers** (`internal/handler/`): HTTP request processing
-4. **Clients** (`internal/client/`): gRPC service communication
-5. **Routing** (`internal/router/`): HTTP route definitions
-6. **Middleware** (`internal/middleware/`): HTTP middleware components
-7. **API Definitions** (`api/proto/`): Protocol Buffer contracts
-8. **Shared Protos** (`submodules/`): Shared protocol buffer definitions
+1. **Entry Point** (`cmd/apigw/`): Application bootstrap and configuration
+2. **Configuration** (`config/`): Environment and service configuration management
+3. **Handlers** (`internal/handler/`): HTTP request processing and response formatting
+4. **Clients** (`internal/client/`): gRPC service communication layer
+5. **Routing** (`internal/router/`): HTTP route definitions and middleware setup
+6. **Middleware** (`internal/middleware/`): HTTP middleware components (CORS, health, etc.)
+7. **API Definitions** (`pb/`): Generated Protocol Buffer contracts and gRPC stubs
+8. **Shared Protos** (`submodules/`): Shared protocol buffer definitions across services
+
+### Data Flow
+
+```
+HTTP Request → Router → Middleware → Handler → gRPC Client → Microservice
+                ↓
+HTTP Response ← Handler ← gRPC Response ← Microservice
+```
 
 ## 🔄 Go Conventions
 
 This project follows Go community conventions:
 
-- **Standard Layout**: Uses `cmd/`, `internal/`, `api/` directories
+- **Standard Layout**: Uses `cmd/`, `internal/`, `pb/` directories
 - **Package Naming**: Packages match directory names
 - **Import Paths**: Consistent module-based imports
-- **Error Handling**: Proper error propagation
+- **Error Handling**: Proper error propagation and logging
 - **Testing**: Comprehensive test coverage
 - **Documentation**: Clear API and code documentation
+- **Build Automation**: Comprehensive Makefile for all development tasks
+
+## 🚀 Deployment
+
+### Production Build
+
+```bash
+# Build optimized binary for production
+make build-prod
+```
+
+### Docker Deployment
+
+```bash
+# Build and run with Docker
+make docker-build
+make docker-run
+```
+
+### Environment Configuration
+
+For production deployment, ensure proper environment variables are set:
+
+```bash
+export APIGW_SERVER_HTTP_PORT=8080
+export APIGW_SERVICES_USER_SERVICE_HOST=your-user-service-host
+export APIGW_SERVICES_USER_SERVICE_PORT=9090
+```
 
 ## 🤝 Contributing
 
@@ -344,12 +438,23 @@ This project follows Go community conventions:
 
 ### Development Guidelines
 
-- Follow Go coding standards
-- Write tests for new features
+- Follow Go coding standards and conventions
+- Write tests for new features and maintain high test coverage
 - Update documentation as needed
-- Use meaningful commit messages
-- Keep functions small and focused
+- Use meaningful commit messages following conventional commits
+- Keep functions small and focused on single responsibilities
 - Update submodules when proto definitions change
+- Ensure all make commands work correctly
+- Test both local and Docker deployments
+
+### Code Review Checklist
+
+- [ ] Code follows Go conventions
+- [ ] Tests are included and passing
+- [ ] Documentation is updated
+- [ ] No linter errors
+- [ ] Protobuf files are regenerated if needed
+- [ ] Build and deployment work correctly
 
 ## 📄 License
 
@@ -361,6 +466,14 @@ For questions and support:
 - Check the API documentation above
 - Review the project structure guide
 - Open an issue on GitHub
+- Check the Makefile for available commands
+
+## 🔗 Related Projects
+
+This API Gateway is part of a larger microservices architecture:
+- **User Service**: Authentication and user management microservice
+- **Booking Service**: Ticket booking and management microservice
+- **Payment Service**: Payment processing microservice
 
 ---
 
