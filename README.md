@@ -12,7 +12,7 @@ A lightweight API gateway built with Go and Gin that provides HTTP endpoints for
 - **Health Check**: Built-in health check endpoint
 - **Middleware Support**: Reusable middleware components
 - **Docker Support**: Containerized deployment
-
+- **Shared Proto Definitions**: Uses git submodules for shared protocol buffer definitions
 
 ## 📋 API Endpoints
 
@@ -47,12 +47,11 @@ apigw/
 │   │   └── user_handler.go
 │   ├── middleware/      # HTTP middleware components
 │   │   ├── cors.go
-│   │   ├── health.go
-│   │   └── logging.go
+│   │   └── health.go
 │   └── router/          # HTTP routing
 │       └── router.go
-
 ├── submodules/          # Git submodules for shared protos
+│   └── user-svc.proto   # Shared protocol buffer definitions
 ├── go.mod              # Go module definition
 ├── go.sum              # Go module checksums
 ├── Makefile            # Build automation
@@ -65,6 +64,7 @@ apigw/
 ### Prerequisites
 
 - Go 1.24 or later
+- Protocol Buffer compiler (`protoc`)
 - User service running on port 9090
 
 ### Installation
@@ -74,17 +74,22 @@ apigw/
 cd apigw
 ```
 
-2. Install dependencies:
+2. Initialize and update submodules:
 ```bash
-make deps
+git submodule update --init --recursive
 ```
 
-3. Build the application:
+3. Install dependencies and development tools:
+```bash
+make setup-dev
+```
+
+4. Build the application:
 ```bash
 make build
 ```
 
-4. Run the API gateway:
+5. Run the API gateway:
 ```bash
 make run
 ```
@@ -111,8 +116,6 @@ services:
   user_service:
     host: "localhost"
     port: 9090
-
-
 ```
 
 ### Environment Variables
@@ -188,10 +191,13 @@ curl -X POST http://localhost:8080/api/v1/users/refresh \
 - `make fmt` - Format code
 - `make lint` - Lint code
 - `make proto` - Generate protobuf files
+- `make proto-clean` - Clean generated protobuf files
+- `make proto-regenerate` - Clean and regenerate protobuf files
 - `make build-prod` - Build for production
 - `make docker-build` - Build Docker image
 - `make docker-run` - Run Docker container
 - `make install-tools` - Install development tools
+- `make setup-dev` - Complete development setup
 
 ### Running Tests
 
@@ -219,8 +225,23 @@ make lint
 # Install protobuf tools
 make install-tools
 
-# Generate protobuf files
+# Generate protobuf files from submodules
 make proto
+
+# Clean generated protobuf files
+make proto-clean
+
+# Regenerate protobuf files (clean + generate)
+make proto-regenerate
+```
+
+### Development Setup
+
+For a complete development environment setup:
+
+```bash
+# This will install tools, dependencies, and generate proto files
+make setup-dev
 ```
 
 ## 🐳 Docker Support
@@ -295,6 +316,7 @@ This API Gateway follows a clean architecture pattern:
 5. **Routing** (`internal/router/`): HTTP route definitions
 6. **Middleware** (`internal/middleware/`): HTTP middleware components
 7. **API Definitions** (`api/proto/`): Protocol Buffer contracts
+8. **Shared Protos** (`submodules/`): Shared protocol buffer definitions
 
 ## 🔄 Go Conventions
 
@@ -311,13 +333,14 @@ This project follows Go community conventions:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes following Go conventions
-4. Add tests for new functionality
-5. Ensure all tests pass (`make test`)
-6. Format and lint your code (`make fmt && make lint`)
-7. Commit your changes (`git commit -m 'Add amazing feature'`)
-8. Push to the branch (`git push origin feature/amazing-feature`)
-9. Open a Pull Request
+3. Initialize submodules: `git submodule update --init --recursive`
+4. Make your changes following Go conventions
+5. Add tests for new functionality
+6. Ensure all tests pass (`make test`)
+7. Format and lint your code (`make fmt && make lint`)
+8. Commit your changes (`git commit -m 'Add amazing feature'`)
+9. Push to the branch (`git push origin feature/amazing-feature`)
+10. Open a Pull Request
 
 ### Development Guidelines
 
@@ -326,6 +349,7 @@ This project follows Go community conventions:
 - Update documentation as needed
 - Use meaningful commit messages
 - Keep functions small and focused
+- Update submodules when proto definitions change
 
 ## 📄 License
 
