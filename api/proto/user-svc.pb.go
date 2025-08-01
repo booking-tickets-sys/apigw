@@ -4,7 +4,7 @@
 // 	protoc        v5.28.0
 // source: user-svc.proto
 
-package pb
+package proto
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -99,7 +99,7 @@ func (x *User) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-// Register request message - used for user registration
+// RegisterRequest represents a user registration request
 type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
@@ -160,7 +160,7 @@ func (x *RegisterRequest) GetPassword() string {
 	return ""
 }
 
-// Register response message - returned after successful registration
+// RegisterResponse represents a user registration response
 type RegisterResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
@@ -221,7 +221,7 @@ func (x *RegisterResponse) GetRefreshToken() string {
 	return ""
 }
 
-// Login request message - used for user authentication
+// LoginRequest represents a user login request
 type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
@@ -274,7 +274,7 @@ func (x *LoginRequest) GetPassword() string {
 	return ""
 }
 
-// Login response message - returned after successful login
+// LoginResponse represents a user login response
 type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
@@ -335,7 +335,7 @@ func (x *LoginResponse) GetRefreshToken() string {
 	return ""
 }
 
-// Refresh token request message - used for refreshing access tokens
+// RefreshTokenRequest represents a token refresh request
 type RefreshTokenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
@@ -380,7 +380,7 @@ func (x *RefreshTokenRequest) GetRefreshToken() string {
 	return ""
 }
 
-// Refresh token response message - returned after successful token refresh
+// RefreshTokenResponse represents a token refresh response
 type RefreshTokenResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
@@ -425,7 +425,7 @@ func (x *RefreshTokenResponse) GetAccessToken() string {
 	return ""
 }
 
-// Revoke token request message - used for revoking refresh tokens
+// RevokeTokenRequest represents a token revocation request
 type RevokeTokenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
@@ -470,7 +470,7 @@ func (x *RevokeTokenRequest) GetRefreshToken() string {
 	return ""
 }
 
-// Revoke token response message - returned after successful token revocation
+// RevokeTokenResponse represents a token revocation response
 type RevokeTokenResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -523,7 +523,7 @@ func (x *RevokeTokenResponse) GetMessage() string {
 	return ""
 }
 
-// Revoke all user tokens request message - used for revoking all tokens for a user
+// RevokeAllUserTokensRequest represents a request to revoke all tokens for a user
 type RevokeAllUserTokensRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -568,7 +568,7 @@ func (x *RevokeAllUserTokensRequest) GetUserId() string {
 	return ""
 }
 
-// Revoke all user tokens response message - returned after successful bulk token revocation
+// RevokeAllUserTokensResponse represents a response to revoke all tokens for a user
 type RevokeAllUserTokensResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -621,7 +621,7 @@ func (x *RevokeAllUserTokensResponse) GetMessage() string {
 	return ""
 }
 
-// Cleanup expired tokens request message - used for cleaning up expired tokens
+// CleanupExpiredTokensRequest represents a request to cleanup expired tokens
 type CleanupExpiredTokensRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -658,7 +658,7 @@ func (*CleanupExpiredTokensRequest) Descriptor() ([]byte, []int) {
 	return file_user_svc_proto_rawDescGZIP(), []int{11}
 }
 
-// Cleanup expired tokens response message - returned after successful cleanup
+// CleanupExpiredTokensResponse represents a response to cleanup expired tokens
 type CleanupExpiredTokensResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -774,7 +774,7 @@ const file_user_svc_proto_rawDesc = "" +
 	"\fRefreshToken\x12\x19.user.RefreshTokenRequest\x1a\x1a.user.RefreshTokenResponse\x12B\n" +
 	"\vRevokeToken\x12\x18.user.RevokeTokenRequest\x1a\x19.user.RevokeTokenResponse\x12Z\n" +
 	"\x13RevokeAllUserTokens\x12 .user.RevokeAllUserTokensRequest\x1a!.user.RevokeAllUserTokensResponse\x12]\n" +
-	"\x14CleanupExpiredTokens\x12!.user.CleanupExpiredTokensRequest\x1a\".user.CleanupExpiredTokensResponseB\rZ\vuser-svc/pbb\x06proto3"
+	"\x14CleanupExpiredTokens\x12!.user.CleanupExpiredTokensRequest\x1a\".user.CleanupExpiredTokensResponseB\x11Z\x0fapigw/api/protob\x06proto3"
 
 var (
 	file_user_svc_proto_rawDescOnce sync.Once

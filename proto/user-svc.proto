@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "apigw/api/proto";
+
+import "google/protobuf/timestamp.proto";
+
+// User message - represents a user in the system
+message User {
+  string id = 1;
+  string email = 2;
+  string username = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+// RegisterRequest represents a user registration request
+message RegisterRequest {
+  string email = 1;
+  string username = 2;
+  string password = 3;
+}
+
+// RegisterResponse represents a user registration response
+message RegisterResponse {
+  User user = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+}
+
+// LoginRequest represents a user login request
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+// LoginResponse represents a user login response
+message LoginResponse {
+  User user = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+}
+
+// RefreshTokenRequest represents a token refresh request
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+// RefreshTokenResponse represents a token refresh response
+message RefreshTokenResponse {
+  string access_token = 1;
+}
+
+// RevokeTokenRequest represents a token revocation request
+message RevokeTokenRequest {
+  string refresh_token = 1;
+}
+
+// RevokeTokenResponse represents a token revocation response
+message RevokeTokenResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// RevokeAllUserTokensRequest represents a request to revoke all tokens for a user
+message RevokeAllUserTokensRequest {
+  string user_id = 1;
+}
+
+// RevokeAllUserTokensResponse represents a response to revoke all tokens for a user
+message RevokeAllUserTokensResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// CleanupExpiredTokensRequest represents a request to cleanup expired tokens
+message CleanupExpiredTokensRequest {
+}
+
+// CleanupExpiredTokensResponse represents a response to cleanup expired tokens
+message CleanupExpiredTokensResponse {
+  bool success = 1;
+  string message = 2;
+  int32 tokens_removed = 3;
+}
+
+// UserService provides user authentication and management functionality
+service UserService {
+  // Register creates a new user account
+  // Returns user information, access token, and refresh token on success
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // Login authenticates an existing user
+  // Returns user information, access token, and refresh token on success
+  rpc Login(LoginRequest) returns (LoginResponse);
+
+  // RefreshToken exchanges a refresh token for a new access token and refresh token pair
+  // Returns new access token and refresh token on success
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+
+  // RevokeToken revokes a specific refresh token
+  // Returns success status and message
+  rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse);
+
+  // RevokeAllUserTokens revokes all refresh tokens for a specific user
+  // Returns success status and message
+  rpc RevokeAllUserTokens(RevokeAllUserTokensRequest) returns (RevokeAllUserTokensResponse);
+
+  // CleanupExpiredTokens removes expired refresh tokens from the database
+  // Returns success status, message, and number of tokens removed
+  rpc CleanupExpiredTokens(CleanupExpiredTokensRequest) returns (CleanupExpiredTokensResponse);
+} 

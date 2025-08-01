@@ -52,7 +52,8 @@ apigw/
 │   └── router/          # HTTP routing
 │       └── router.go
 
-├── submodules/          # Git submodules for shared protos
+├── proto/              # Protocol Buffer definitions
+│   └── user-svc.proto
 ├── go.mod              # Go module definition
 ├── go.sum              # Go module checksums
 ├── Makefile            # Build automation
