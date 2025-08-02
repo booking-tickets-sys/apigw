@@ -8,7 +8,7 @@ RUN apk add --no-cache git ca-certificates
 WORKDIR /app
 
 # Copy go mod files
-COPY apigw/go.mod apigw/go.sum ./
+COPY go.mod go.sum ./
 
 # Copy proto directory for module replacement
 COPY pb/ ./pb/
@@ -17,7 +17,7 @@ COPY pb/ ./pb/
 RUN go mod download
 
 # Copy source code
-COPY apigw/ .
+COPY . .
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o apigw ./cmd/apigw

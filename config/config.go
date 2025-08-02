@@ -43,22 +43,19 @@ func (c *UserServiceConfig) GetAddress() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
-func LoadConfig(path string) (*Config, error) {
+func LoadConfig() (*Config, error) {
 	// Set default values
 	setDefaults()
 
-	// Set config file
-	viper.SetConfigFile(path)
-	viper.SetConfigType("yaml")
+	// Configure Viper for multiple config sources
+	configureViper()
 
-	// Enable environment variable support
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("APIGW")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
-	// Read config file
+	// Read config from file
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
+		// If config file is not found, continue with defaults and env vars
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return nil, fmt.Errorf("failed to read config file: %w", err)
+		}
 	}
 
 	var config Config
@@ -67,6 +64,28 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	return &config, nil
+}
+
+func configureViper() {
+	// Set config name and type
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+
+	// Add multiple config file paths to search
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("./config")
+	viper.AddConfigPath("/etc/apigw")
+	viper.AddConfigPath("$HOME/.apigw")
+
+	// Enable environment variable support
+	viper.AutomaticEnv()
+	viper.SetEnvPrefix("APIGW")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	// Allow config file path override via environment variable
+	if configFile := viper.GetString("CONFIG_FILE"); configFile != "" {
+		viper.SetConfigFile(configFile)
+	}
 }
 
 func setDefaults() {
@@ -83,5 +102,4 @@ func setDefaults() {
 	// Services defaults
 	viper.SetDefault("services.user_service.host", "localhost")
 	viper.SetDefault("services.user_service.port", 9090)
-
 }
