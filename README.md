@@ -14,6 +14,9 @@ A lightweight API gateway built with Go and Gin that provides HTTP endpoints for
 - **Docker Support**: Containerized deployment
 - **Shared Proto Definitions**: Uses git submodules for shared protocol buffer definitions
 - **Automated Build System**: Comprehensive Makefile for development workflow
+- **Security**: JWT token validation and secure communication
+- **Monitoring**: Built-in metrics and health monitoring
+- **Scalability**: Designed for horizontal scaling
 
 ## 📋 API Endpoints
 
@@ -127,6 +130,11 @@ services:
     port: 9090
 ```
 
+### Configuration Sources (in order of precedence):
+1. **Environment Variables** (highest priority)
+2. **Config File** (if found)
+3. **Default Values** (lowest priority)
+
 ### Environment Variables
 
 The application supports environment variable overrides with the `APIGW` prefix:
@@ -135,6 +143,13 @@ The application supports environment variable overrides with the `APIGW` prefix:
 - `APIGW_SERVER_HTTP_HOST` - HTTP server host
 - `APIGW_SERVICES_USER_SERVICE_HOST` - User service host
 - `APIGW_SERVICES_USER_SERVICE_PORT` - User service port
+
+### Config File Locations
+The service will search for `config.yaml` in the following locations:
+- Current directory (`.`)
+- `./config/` directory
+- `/etc/apigw/` (for system-wide config)
+- `$HOME/.apigw/` (for user-specific config)
 
 ## 📖 API Usage Examples
 
@@ -309,11 +324,18 @@ services:
       - APIGW_SERVICES_USER_SERVICE_PORT=9090
     depends_on:
       - user-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   
   user-service:
     image: your-user-service:latest
     ports:
       - "9090:9090"
+    restart: unless-stopped
 ```
 
 ## 🔧 Error Handling
@@ -423,6 +445,155 @@ export APIGW_SERVICES_USER_SERVICE_HOST=your-user-service-host
 export APIGW_SERVICES_USER_SERVICE_PORT=9090
 ```
 
+### Kubernetes Deployment (Optional)
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apigw
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: apigw
+  template:
+    metadata:
+      labels:
+        app: apigw
+    spec:
+      containers:
+      - name: apigw
+        image: apigw:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: APIGW_SERVICES_USER_SERVICE_HOST
+          value: "user-service"
+        - name: APIGW_SERVICES_USER_SERVICE_PORT
+          value: "9090"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apigw-service
+spec:
+  selector:
+    app: apigw
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: LoadBalancer
+```
+
+## 🔒 Security Best Practices
+
+### JWT Token Security
+- Access tokens have short expiration times (15-30 minutes)
+- Refresh tokens are stored securely and rotated
+- Token validation on every protected endpoint
+
+### Communication Security
+- Use TLS/SSL for all production communications
+- Implement proper CORS policies
+- Validate all input data
+
+### Environment Security
+- Never commit sensitive configuration to version control
+- Use environment variables for secrets
+- Implement proper logging without sensitive data
+
+## 📊 Monitoring and Observability
+
+### Health Monitoring
+- Built-in health check endpoint at `/health`
+- Docker health checks configured
+- Kubernetes liveness and readiness probes
+
+### Logging
+- Structured logging for better observability
+- Request/response logging for debugging
+- Error logging with proper context
+
+### Metrics (Future Enhancement)
+- Request rate monitoring
+- Response time tracking
+- Error rate monitoring
+- gRPC connection status
+
+## ⚡ Performance Considerations
+
+### Optimization Tips
+- Use connection pooling for gRPC clients
+- Implement proper timeout configurations
+- Use efficient JSON serialization
+- Consider caching for frequently accessed data
+
+### Scaling
+- Stateless design allows horizontal scaling
+- Load balancing across multiple instances
+- Database connection pooling
+- CDN for static assets (if applicable)
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### 1. Protobuf Generation Errors
+```bash
+# Clean and regenerate protobuf files
+make proto-regenerate
+```
+
+#### 2. gRPC Connection Issues
+- Check if the user service is running
+- Verify network connectivity
+- Check firewall settings
+- Validate service configuration
+
+#### 3. Build Errors
+```bash
+# Clean and rebuild
+make clean
+make deps
+make build
+```
+
+#### 4. Docker Issues
+```bash
+# Rebuild Docker image
+make docker-build
+# Check container logs
+docker logs <container-id>
+```
+
+### Debug Mode
+Enable debug logging by setting the environment variable:
+```bash
+export APIGW_APP_ENVIRONMENT=development
+```
+
+### Log Analysis
+```bash
+# View application logs
+docker logs -f apigw-container
+
+# Check health endpoint
+curl http://localhost:8080/health
+```
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -455,6 +626,8 @@ export APIGW_SERVICES_USER_SERVICE_PORT=9090
 - [ ] No linter errors
 - [ ] Protobuf files are regenerated if needed
 - [ ] Build and deployment work correctly
+- [ ] Security considerations addressed
+- [ ] Performance impact evaluated
 
 ## 📄 License
 
@@ -467,6 +640,7 @@ For questions and support:
 - Review the project structure guide
 - Open an issue on GitHub
 - Check the Makefile for available commands
+- Review the troubleshooting section
 
 ## 🔗 Related Projects
 
@@ -474,6 +648,24 @@ This API Gateway is part of a larger microservices architecture:
 - **User Service**: Authentication and user management microservice
 - **Booking Service**: Ticket booking and management microservice
 - **Payment Service**: Payment processing microservice
+
+## 📈 Roadmap
+
+### Planned Features
+- [ ] Metrics collection and monitoring
+- [ ] Rate limiting middleware
+- [ ] Circuit breaker pattern implementation
+- [ ] API versioning support
+- [ ] GraphQL endpoint support
+- [ ] WebSocket support for real-time features
+- [ ] Advanced caching strategies
+- [ ] Distributed tracing integration
+
+### Performance Improvements
+- [ ] Connection pooling optimization
+- [ ] Response compression
+- [ ] Request batching
+- [ ] Background job processing
 
 ---
 
