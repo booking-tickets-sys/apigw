@@ -10,9 +10,6 @@ WORKDIR /app
 # Copy go mod files
 COPY go.mod go.sum ./
 
-# Copy proto directory for module replacement
-COPY pb/ ./pb/
-
 # Download dependencies
 RUN go mod download
 
@@ -39,7 +36,7 @@ WORKDIR /app
 COPY --from=builder /app/apigw .
 
 # Copy configuration file
-COPY --from=builder /app/config/config.yaml .
+COPY --from=builder /app/config.yaml .
 
 # Change ownership to non-root user
 RUN chown -R appuser:appgroup /app

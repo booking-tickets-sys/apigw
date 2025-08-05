@@ -14,6 +14,7 @@ type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Services ServicesConfig `mapstructure:"services"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
+	Redis    RedisConfig    `mapstructure:"redis"`
 }
 
 // AppConfig represents application-level configuration
@@ -67,10 +68,24 @@ type GRPCConfig struct {
 
 // JWTConfig represents JWT configuration
 type JWTConfig struct {
-	SecretKey            string        `mapstructure:"secret_key"`
-	AccessTokenDuration  time.Duration `mapstructure:"access_token_duration"`
-	RefreshTokenDuration time.Duration `mapstructure:"refresh_token_duration"`
-	Issuer               string        `mapstructure:"issuer"`
+	SecretKey string `mapstructure:"secret_key"`
+}
+
+// RedisConfig represents Redis configuration
+type RedisConfig struct {
+	Enabled bool   `mapstructure:"enabled"`
+	Host    string `mapstructure:"host"`
+	Port    int    `mapstructure:"port"`
+	DB      int    `mapstructure:"db"`
+	// Token Bucket Rate Limiting Configuration
+	TokenBucket TokenBucketConfig `mapstructure:"token_bucket"`
+}
+
+// TokenBucketConfig represents token bucket rate limiting configuration
+type TokenBucketConfig struct {
+	Capacity       int           `mapstructure:"capacity"`
+	RefillRate     float64       `mapstructure:"refill_rate"`
+	RefillInterval time.Duration `mapstructure:"refill_interval"`
 }
 
 // LoadConfig loads configuration from file and environment variables
@@ -119,9 +134,17 @@ func setDefaults(v *viper.Viper) {
 
 	// JWT defaults
 	v.SetDefault("jwt.secret_key", "booking-tickets-api-gateway-secret-key-2024-development")
-	v.SetDefault("jwt.access_token_duration", "15m")
-	v.SetDefault("jwt.refresh_token_duration", "168h")
-	v.SetDefault("jwt.issuer", "booking-tickets-api-gateway")
+
+	// Redis defaults
+	v.SetDefault("redis.enabled", false)
+	v.SetDefault("redis.host", "localhost")
+	v.SetDefault("redis.port", 6379)
+	v.SetDefault("redis.db", 0)
+
+	// Token Bucket defaults
+	v.SetDefault("redis.token_bucket.capacity", 100)
+	v.SetDefault("redis.token_bucket.refill_rate", 1.67) // 100 tokens per minute = 1.67 tokens per second
+	v.SetDefault("redis.token_bucket.refill_interval", "1m")
 
 	// Service defaults
 	v.SetDefault("services.user_service.name", "user-service")

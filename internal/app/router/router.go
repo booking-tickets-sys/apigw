@@ -16,6 +16,7 @@ func SetupRouter(
 	cfg *config.Config,
 	userClient *client.UserServiceClient,
 	orderClient *client.OrderServiceClient,
+	redisClient *client.RedisClient,
 	jwtMaker *token.JWTMaker,
 	logger *logrus.Logger,
 ) *gin.Engine {
@@ -29,8 +30,27 @@ func SetupRouter(
 	// Add middleware
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
-	router.Use(CORSMiddleware())
+	router.Use(middleware.CORSMiddleware())
 	router.Use(middleware.ErrorHandlerMiddleware(logger))
+
+	// Add token bucket rate limiter middleware if Redis is available
+	if redisClient != nil {
+		tokenBucketMiddleware := middleware.CreateCustomTokenBucketMiddleware(
+			redisClient.GetClient(),
+			cfg.Redis.TokenBucket.Capacity,
+			cfg.Redis.TokenBucket.RefillRate,
+			cfg.Redis.TokenBucket.RefillInterval,
+			logger,
+		)
+		router.Use(tokenBucketMiddleware)
+		logger.WithFields(logrus.Fields{
+			"capacity":        cfg.Redis.TokenBucket.Capacity,
+			"refill_rate":     cfg.Redis.TokenBucket.RefillRate,
+			"refill_interval": cfg.Redis.TokenBucket.RefillInterval,
+		}).Info("Token bucket rate limiter middleware enabled")
+	} else {
+		logger.Info("Token bucket rate limiter middleware disabled (Redis not available)")
+	}
 
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
@@ -60,30 +80,13 @@ func SetupRouter(
 			users.POST("/refresh", userHandler.RefreshToken)
 		}
 
-		// Ticket routes (authentication required)
-		tickets := api.Group("/tickets")
-		tickets.Use(jwtMiddleware)
+		// Order routes (authentication required)
+		orders := api.Group("/orders")
+		orders.Use(jwtMiddleware)
 		{
-			tickets.POST("/:event_id/purchase", orderHandler.PurchaseTicket)
+			orders.POST("/:event_id/purchase", orderHandler.PurchaseTicket)
 		}
 	}
 
 	return router
-}
-
-// CORSMiddleware handles Cross-Origin Resource Sharing
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Credentials", "true")
-		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Header("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	}
 }

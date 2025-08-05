@@ -1,18 +1,13 @@
 package errs
 
 import (
-	"errors"
 	"net/http"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// Common domain errors
-var (
-	ErrInvalidRequest = errors.New("invalid request")
-	ErrInvalidEventID = errors.New("invalid event ID")
-)
+
 
 // HTTPError represents a structured HTTP error response
 type HTTPError struct {

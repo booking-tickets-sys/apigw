@@ -14,6 +14,7 @@ import (
 	"apigw/internal/client"
 	"apigw/pkg/utils/crypt/token"
 	logutils "apigw/pkg/utils/log"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -45,6 +46,33 @@ func main() {
 		logger.Fatalf("Failed to create order client: %v", err)
 	}
 
+	// Initialize Redis client for rate limiting
+	var redisClient *client.RedisClient
+	if cfg.Redis.Enabled {
+		redisClient, err = client.NewRedisClient(&cfg.Redis, logger)
+		if err != nil {
+			logger.Fatalf("Failed to create Redis client: %v", err)
+		}
+		defer redisClient.Close()
+		logger.Info("Redis client initialized for rate limiting")
+	} else {
+		logger.Info("Redis is disabled, rate limiting will not be available")
+	}
+
+	// Ensure clients are properly closed on exit
+	defer func() {
+		if userClient != nil {
+			if err := userClient.Close(); err != nil {
+				logger.WithError(err).Error("Failed to close user client")
+			}
+		}
+		if orderClient != nil {
+			if err := orderClient.Close(); err != nil {
+				logger.WithError(err).Error("Failed to close order client")
+			}
+		}
+	}()
+
 	// Initialize token maker
 	tokenMaker, err := token.NewJWTTokenMaker(cfg.JWT.SecretKey)
 	if err != nil {
@@ -52,7 +80,7 @@ func main() {
 	}
 
 	// Setup router
-	router := router.SetupRouter(cfg, userClient, orderClient, tokenMaker, logger)
+	router := router.SetupRouter(cfg, userClient, orderClient, redisClient, tokenMaker, logger)
 
 	// Create HTTP server
 	serverAddr := fmt.Sprintf("%s:%d", cfg.Server.HTTP.Host, cfg.Server.HTTP.Port)

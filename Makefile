@@ -1,6 +1,6 @@
 # Makefile for API Gateway
 
-.PHONY: all build test clean run proto help
+.PHONY: all build test clean run proto help docker-compose
 
 # Default target
 all: build
@@ -86,22 +86,66 @@ docker-run:
 	@echo "Running Docker container..."
 	docker run -p 8080:8080 --name apigw-container apigw
 
+# Docker Compose commands
+docker-compose-up:
+	@echo "Starting API Gateway and Redis with Docker Compose..."
+	docker compose up -d
+
+docker-compose-down:
+	@echo "Stopping all services..."
+	docker compose down
+
+docker-compose-logs:
+	@echo "Showing logs for all services..."
+	docker compose logs -f
+
+docker-compose-monitoring:
+	@echo "Starting services with monitoring..."
+	docker compose --profile monitoring up -d
+
+docker-compose-clean:
+	@echo "Cleaning up Docker Compose resources..."
+	docker compose down -v --remove-orphans
+	docker system prune -f
+
+# Run API Gateway only (for development)
+docker-apigw-only:
+	@echo "Building and running API Gateway only..."
+	docker build -t apigw .
+	docker run -p 8080:8080 --name apigw-dev apigw
+
 # Show help
 help:
 	@echo "Available targets:"
-	@echo "  all          - Build the application (default)"
-	@echo "  build        - Build the application"
-	@echo "  test         - Run tests"
-	@echo "  clean        - Clean build artifacts"
-	@echo "  run          - Build and run the application"
-	@echo "  server       - Run server (alias for run)"
-	@echo "  dev          - Run in development mode"
-	@echo "  proto        - Update submodule and generate proto files"
-	@echo "  deps         - Install dependencies"
-	@echo "  fmt          - Format code"
-	@echo "  lint         - Lint code"
-	@echo "  install-tools - Install development tools"
-	@echo "  setup-dev    - Complete development setup"
-	@echo "  docker-build - Build Docker image"
-	@echo "  docker-run   - Run Docker container"
-	@echo "  help         - Show this help message"
+	@echo "  all                    - Build the application (default)"
+	@echo "  build                  - Build the application"
+	@echo "  test                   - Run tests"
+	@echo "  clean                  - Clean build artifacts"
+	@echo "  run                    - Build and run the application"
+	@echo "  server                 - Run server (alias for run)"
+	@echo "  dev                    - Run in development mode"
+	@echo "  proto                  - Update submodule and generate proto files"
+	@echo "  deps                   - Install dependencies"
+	@echo "  fmt                    - Format code"
+	@echo "  lint                   - Lint code"
+	@echo "  install-tools          - Install development tools"
+	@echo "  setup-dev              - Complete development setup"
+	@echo "  docker-build           - Build Docker image"
+	@echo "  docker-run             - Run Docker container"
+	@echo ""
+	@echo "Docker Compose commands:"
+	@echo "  docker-compose-up      - Start API Gateway and Redis"
+	@echo "  docker-compose-down    - Stop all services"
+	@echo "  docker-compose-logs    - Show logs for all services"
+	@echo "  docker-compose-monitoring - Start with monitoring (Redis Commander)"
+	@echo "  docker-compose-clean   - Clean up all Docker resources"
+	@echo "  docker-apigw-only      - Run API Gateway only (for development)"
+	@echo ""
+	@echo "Environment variables:"
+	@echo "  APP_ENVIRONMENT        - Set to 'production' for production mode"
+	@echo "  JWT_SECRET_KEY         - JWT secret key"
+	@echo "  DB_PASSWORD            - Database password"
+	@echo "  DB_NAME                - Database name"
+	@echo "  LOG_LEVEL              - Log level (debug, info, warn, error)"
+	@echo ""
+	@echo "  help                   - Show this help message"

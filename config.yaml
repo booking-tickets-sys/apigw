@@ -16,10 +16,19 @@ server:
 
 # JWT Configuration
 jwt:
-  secret_key: "booking-tickets-api-gateway-secret-key-2024-development"
-  access_token_duration: "15m"
-  refresh_token_duration: "168h"
-  issuer: "booking-tickets-api-gateway"
+  secret_key: "your-secret-key-change-in-production-super-secure-32-chars-minimum-2024"
+
+# Redis Configuration (for rate limiting)
+redis:
+  enabled: true
+  host: "localhost"
+  port: 6379
+  db: 0
+  # Token Bucket Rate Limiting Configuration
+  token_bucket:
+    capacity: 100           # Maximum number of tokens in the bucket
+    refill_rate: 1.67       # Tokens per second (100 tokens per minute)
+    refill_interval: "1m"   # How often to refill tokens
 
 # Services Configuration
 services:
