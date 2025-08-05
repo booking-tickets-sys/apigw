@@ -62,5 +62,3 @@ func (rc *RedisClient) GetClient() *redis.Client {
 func (rc *RedisClient) Close() error {
 	return rc.client.Close()
 }
-
- 

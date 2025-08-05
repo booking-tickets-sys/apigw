@@ -101,6 +101,56 @@ apigw/
 - User service running on port 50051
 - Order service running on port 50052
 
+## 🔄 CI/CD Pipeline
+
+This project includes a comprehensive CI/CD pipeline using GitHub Actions for automated testing, building, and deployment.
+
+### Pipeline Features
+
+- **Automated Testing**: Unit tests with race condition detection
+- **Code Quality**: Automated linting and formatting checks
+- **Security Scanning**: Static security analysis with gosec
+- **Docker Building**: Automated Docker image creation
+- **Deployment Ready**: Staging and production deployment stages
+
+### Local Development
+
+Run CI checks locally before pushing:
+
+```bash
+# Run all CI checks (format, lint, test, build)
+make ci
+
+# Individual checks
+make fmt      # Format code
+make lint     # Lint code
+make test     # Run tests with race detection
+make build    # Build application
+```
+
+### GitHub Actions Workflows
+
+#### Simple CI Pipeline (`.github/workflows/ci-simple.yml`)
+- Triggers on push to `main`/`develop` and pull requests
+- Runs tests with race detection
+- Performs code quality checks
+- Builds the application
+- Uploads build artifacts
+
+#### Comprehensive CI/CD Pipeline (`.github/workflows/ci.yml`)
+- Full CI/CD pipeline with security scanning
+- Docker image building
+- Staging deployment (develop branch)
+- Production deployment (main branch)
+
+### Pipeline Triggers
+
+- **Push to main**: Full CI/CD pipeline with production deployment
+- **Push to develop**: CI pipeline with staging deployment
+- **Pull Requests**: CI pipeline for code review
+
+For detailed CI/CD documentation, see [CI_README.md](CI_README.md).
+
 ### Installation
 
 1. Clone the repository and navigate to the API gateway directory:
@@ -840,6 +890,8 @@ redis-cli info memory
 - Verify error handling and mapping
 - Test rate limiting functionality with Redis
 - Validate token bucket rate limiting behavior
+- **Run CI checks locally**: Always run `make ci` before pushing changes
+- **Check CI pipeline**: Ensure GitHub Actions pass before merging PRs
 
 ### Code Review Checklist
 
@@ -854,6 +906,9 @@ redis-cli info memory
 - [ ] Error handling properly implemented
 - [ ] Rate limiting tested with Redis
 - [ ] Token bucket algorithm validated
+- [ ] CI checks pass locally (`make ci`)
+- [ ] GitHub Actions pipeline passes
+- [ ] No security vulnerabilities detected
 
 ## 📄 License
 

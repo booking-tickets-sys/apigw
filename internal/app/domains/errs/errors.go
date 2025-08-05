@@ -7,8 +7,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-
-
 // HTTPError represents a structured HTTP error response
 type HTTPError struct {
 	ErrorType string `json:"error"`

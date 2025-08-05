@@ -25,8 +25,6 @@ func NewJWTTokenMaker(secretKey string) (*JWTMaker, error) {
 	return &JWTMaker{secretKey: secretKey}, nil
 }
 
-
-
 // VerifyToken checks if the token is valid or not
 func (maker *JWTMaker) VerifyToken(token string) (*Payload, error) {
 	keyFunc := func(token *jwt.Token) (interface{}, error) {

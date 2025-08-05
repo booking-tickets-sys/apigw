@@ -14,7 +14,11 @@ build:
 # Run tests
 test:
 	@echo "Running tests..."
-	go test -v ./...
+	go test -v -race ./...
+
+# Run CI checks
+ci: fmt lint test build
+	@echo "CI checks completed successfully!"
 
 # Clean build artifacts
 clean:
@@ -120,6 +124,7 @@ help:
 	@echo "  all                    - Build the application (default)"
 	@echo "  build                  - Build the application"
 	@echo "  test                   - Run tests"
+	@echo "  ci                     - Run all CI checks (fmt, lint, test, build)"
 	@echo "  clean                  - Clean build artifacts"
 	@echo "  run                    - Build and run the application"
 	@echo "  server                 - Run server (alias for run)"

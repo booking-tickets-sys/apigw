@@ -44,7 +44,15 @@ func InitLogger() error {
 func GetLogger() *logrus.Logger {
 	if logger == nil {
 		// Initialize with defaults if not already initialized
-		InitLogger()
+		if err := InitLogger(); err != nil {
+			// If initialization fails, create a basic logger
+			logger = logrus.New()
+			logger.SetLevel(logrus.InfoLevel)
+			logger.SetFormatter(&logrus.TextFormatter{
+				FullTimestamp: true,
+			})
+			logger.SetOutput(os.Stdout)
+		}
 	}
 	return logger
 }
